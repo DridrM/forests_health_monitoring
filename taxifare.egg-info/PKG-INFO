@@ -1,0 +1,7 @@
+Metadata-Version: 2.1
+Name: taxifare
+Version: 0.0.4
+Summary: TaxiFare Model (train_at_scale)
+Author: Le Wagon
+Author-email: contact@lewagon.org
+License: MIT
