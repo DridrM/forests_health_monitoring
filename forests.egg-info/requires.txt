@@ -17,6 +17,7 @@ google-cloud-storage
 db-dtypes
 pyarrow
 opencv-python
+shapely
 
 [:sys_platform != "darwin"]
 tensorflow==2.10.0
