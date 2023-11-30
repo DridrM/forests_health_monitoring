@@ -10,5 +10,6 @@ forests.egg-info/top_level.txt
 forests/data_exploration/__init__.py
 forests/data_exploration/classes_statistics.py
 forests/preprocessing/__init__.py
+forests/preprocessing/mask.py
 forests/preprocessing/split.py
 tests/__init__.py
