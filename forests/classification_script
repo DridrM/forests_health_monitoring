@@ -1,0 +1,19 @@
+cd raw_data/ForestNetDataset
+mkdir test
+mkdir valid
+mkdir train
+
+mkdir test/Grass
+mkdir test/Other
+mkdir test/Plantation
+mkdir test/Agriculture
+
+mkdir train/Grass
+mkdir train/Other
+mkdir train/Plantation
+mkdir train/Agriculture
+
+mkdir valid/Grass
+mkdir valid/Other
+mkdir valid/Plantation
+mkdir valid/Agriculture
