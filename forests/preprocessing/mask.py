@@ -145,3 +145,36 @@ def pullFile(file_path):
         print(my_im_f_input)
         print(my_target)
         shutil.copy(my_im_f_input, my_target)
+
+
+def classifyData_Pickle(csv_path,processed_file, process_type):
+    pickle_name= "forest_loss_region.pkl"
+    if process_type=="train":
+        train = pd.read_csv(csv_path+'/train.csv')
+        path_to_train="../raw_data/ForestNetDataset/train"
+    elif process_type=="valid":
+        train = pd.read_csv(csv_path+'/val.csv')
+        path_to_train="../raw_data/ForestNetDataset/valid"
+    elif process_type=="test":
+        train = pd.read_csv(csv_path+'/test.csv')
+        path_to_train="../raw_data/ForestNetDataset/test"
+
+    for index, row in train.iterrows():
+        row_path=csv_path+row["example_path"]
+        png_files = [file for file in all_files if file.endswith('.png')]
+        processed_path=row_path+"/"+png_files[0]
+        image_str=row['example_path']
+        target_dir=image_str.replace('examples/',"")
+        img_name=target_dir+".jpg"
+        pickle_name=target_dir+".pkl"
+        #file_exist=os.path.exists(processed_path)
+        my_target_file=path_to_train+"/"+img_name
+        my_target_pickle=path_to_train+"/"+pickle_name
+        else:
+            print(img_name+"not found")
+        #print("PROCESSED PATH",processed_path)
+        #print("TARGET PATH",my_target_file)
+        try:
+            shutil.copy(processed_path, my_target_file)
+        except Exception as e:
+            print(processed_path, " not processed:",e)
