@@ -86,38 +86,48 @@ def bulkProcess(path_to_images,alpha, out_name):
         except Exception as e:
             print(data_dir, " not processed:",e)
 
-def classifyData(csv_path,processed_file):
-    train = pd.read_csv(csv_path+'/train.csv')
-    path_to_train="../raw_data/ForestNetDataset/train"
+def classifyData(csv_path,processed_file, process_type):
+    if process_type=="train":
+        train = pd.read_csv(csv_path+'/train.csv')
+        path_to_train="../raw_data/ForestNetDataset/train"
+    elif process_type=="valid":
+        train = pd.read_csv(csv_path+'/val.csv')
+        path_to_train="../raw_data/ForestNetDataset/valid"
+    elif process_type=="test":
+        train = pd.read_csv(csv_path+'/test.csv')
+        path_to_train="../raw_data/ForestNetDataset/test"
 
     for index, row in train.iterrows():
         row_label=row["merged_label"]
-        row_path=csv_path+"/"+row["example_path"]
+        row_path=csv_path+row["example_path"]
         processed_path=row_path+"/"+processed_file
-        img_name=train['example_path'].str.extract(r'examples/(.*)')
+        image_str=row['example_path']
+        img_name=image_str.replace('examples/',"")+".jpg"
         file_exist=os.path.exists(processed_path)
 
         if row_label=="Plantation":
-            my_input=f"Plantation: {processed_path} - {file_exist}"
+           # my_input=f"Plantation: {processed_path} - {file_exist}"
             my_target_file=path_to_train+"/Plantation/"+img_name
         elif row_label.startswith("Grass"):
-            my_input=f"Grass: {processed_path} - {file_exist}"
+            #my_input=f"Grass: {processed_path} - {file_exist}"
             my_target_file=path_to_train+"/Grass/"+img_name
 
         elif row_label.startswith("Small"):
-            my_input=f"Agriculture:{processed_path} - {file_exist}"
+            #my_input=f"Agriculture:{processed_path} - {file_exist}"
             my_target_file=path_to_train+"/Agriculture/"+img_name
 
         elif row_label=="Other":
-            my_input=f"Other:{processed_path} - {file_exist}"
-            my_test1=path_to_train+"/Other"
+            #my_input=f"Other:{processed_path} - {file_exist}"
             my_target_file=path_to_train+"/Other/"+img_name
         else:
             print(img_name+"not found")
-        print(processed_path)
-        print(my_target_file)
-        print("NEW ROW")
-#        shutil.copy(processed_path, my_target_file)
+        #print("PROCESSED PATH",processed_path)
+        #print("TARGET PATH",my_target_file)
+        try:
+            shutil.copy(processed_path, my_target_file)
+        except Exception as e:
+            print(processed_path, " not processed:",e)
+
 
 
 def pullFile(file_path):
@@ -135,3 +145,66 @@ def pullFile(file_path):
         print(my_im_f_input)
         print(my_target)
         shutil.copy(my_im_f_input, my_target)
+
+
+def process_mask_target(input_pickle_path: str, 
+                        output_mask_target_path: str, 
+                        mask_size = (332, 332, 1)) -> None:
+    """Build a mask from the shape at input_pickle_path
+       Write the mask in the output_mask_target_path as numpy array"""
+       
+    # Create a 332 * 332 black image
+    black_image = np.zeros(shape = mask_size)
+       
+    # Extract the polygons from the pickle
+    polygons = open_pickle_polygons(input_pickle_path)
+    
+    # Apply mask to the black image
+    target = apply_mask_to_image(black_image, polygons, alpha = 1)
+    
+    # Save the target mask
+    np.save(output_mask_target_path, target)
+
+
+def classifyData_Pickle(csv_path, process_type):
+    
+    pickle_name = "forest_loss_region.pkl"
+    
+    if process_type=="train":
+        train = pd.read_csv(csv_path+'/train.csv')
+        path_to_train="../raw_data/ForestNetDataset/train"
+    
+    elif process_type=="valid":
+        train = pd.read_csv(csv_path+'/val.csv')
+        path_to_train="../raw_data/ForestNetDataset/valid"
+    
+    elif process_type=="test":
+        train = pd.read_csv(csv_path+'/test.csv')
+        path_to_train="../raw_data/ForestNetDataset/test"
+
+    for index, row in train.iterrows():
+        row_path=csv_path+row["example_path"]
+        all_files=os.listdir(row_path)
+        png_files = [file for file in all_files if file.endswith('.png')]
+        processed_path=row_path+"/"+png_files[0]
+        image_str=row['example_path']
+        target_dir=image_str.replace('examples/',"")
+        img_name=target_dir+".jpg"
+        
+        input_pickle = row_path+"/"+pickle_name
+        pickle_name_target=target_dir+"_mask"
+        
+        my_target_file=path_to_train+"/"+img_name
+        my_target_pickle=path_to_train+"/"+pickle_name_target
+        
+        # print("INPUT IMAGE",processed_path)
+        # print("INPUT PICKLE:",input_pickle)
+        # print("TARGET IMAGE",my_target_file)
+        # print("TARGET PICKLE",my_target_pickle)
+        try:
+             shutil.copy(processed_path, my_target_file)
+            #  shutil.copy(input_pickle, my_target_pickle)
+             process_mask_target(input_pickle, my_target_pickle)
+             
+        except Exception as e:
+             print(processed_path, " not processed:",e)
