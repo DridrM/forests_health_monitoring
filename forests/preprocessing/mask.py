@@ -50,8 +50,6 @@ def apply_mask_to_image(image: np.array,
         # Create the mask on the overlay
         cv2.fillPoly(overlay, exterior, color = mask_color, lineType = line_type)
 
-
-
         # Flatten the mask and the image layer
         cv2.addWeighted(overlay, alpha, image_to_mask, 1 - alpha, 0, image_to_mask)
 

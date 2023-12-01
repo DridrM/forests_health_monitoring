@@ -68,13 +68,13 @@ def createModel(image_shape,kernel_size,num_classes):
 
     return model
 
-def compileModel(model,learning_rate = 0.001, loss_type):
+def compileModel(model, loss_type, learning_rate = 0.001):
     #  loss_type= ='binary_crossentropy' for 2 categories
     # loss_type= = 'categorical_crossentropy' for multiple
     adam = optimizers.Adam(learning_rate)
     model.compile(loss=loss_type,
               optimizer= adam,
-              metrics=['accuracy','Recall'])
+              metrics=['accuracy','recall'])
     return model
 
 def trainModel(model,train_ds,val_ds,n_epochs=20):
@@ -161,7 +161,7 @@ def createDataSet_2(image_size,batch_size,sampleEnv=True):
     return train_ds, val_ds , test_ds
 
 
-def createDataSet_ForestNet(image_size,batch_size,sampleEnv=True,label_mode):
+def createDataSet_ForestNet(image_size, label_mode, batch_size, sampleEnv = True,):
     data_path= "../raw_data/ForestNetDataset/"
 
     # USE LABEL MODE categorical for multiple categories
