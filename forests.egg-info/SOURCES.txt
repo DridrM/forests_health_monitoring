@@ -1,6 +1,7 @@
 README.md
 setup.py
 forests/__init__.py
+forests/params.py
 forests.egg-info/PKG-INFO
 forests.egg-info/SOURCES.txt
 forests.egg-info/dependency_links.txt
@@ -9,6 +10,8 @@ forests.egg-info/requires.txt
 forests.egg-info/top_level.txt
 forests/data_exploration/__init__.py
 forests/data_exploration/classes_statistics.py
+forests/get_image/__init__.py
+forests/get_image/get_image.py
 forests/modeling/__init__.py
 forests/modeling/data.py
 forests/modeling/modeling.py

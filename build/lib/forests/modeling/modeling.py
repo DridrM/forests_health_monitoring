@@ -52,7 +52,8 @@ def createDataSet(image_size,batch_size,sampleEnv=True):
     return train_ds, val_ds , test_ds
 
 
-def createModel(image_shape,kernel_size):
+def createModel(image_shape,kernel_size,num_classes):
+    # use num_classes to specify the number of categories
     model = Sequential()
     model.add(Rescaling(1./255, input_shape = image_shape))
     model.add(Conv2D(filters = 32, kernel_size = (3,3), input_shape = image_shape, activation="relu", padding = "same"))
@@ -63,15 +64,17 @@ def createModel(image_shape,kernel_size):
 
     model.add(Dropout(0.5))
 
-    model.add(Dense(1, activation="sigmoid"))
+    model.add(Dense(num_classes, activation="sigmoid"))
 
     return model
 
-def compileModel(model,learning_rate = 0.001):
+def compileModel(model, loss_type, learning_rate = 0.001):
+    #  loss_type= ='binary_crossentropy' for 2 categories
+    # loss_type= = 'categorical_crossentropy' for multiple
     adam = optimizers.Adam(learning_rate)
-    model.compile(loss='binary_crossentropy',
+    model.compile(loss=loss_type,
               optimizer= adam,
-              metrics=['accuracy','Recall'])
+              metrics=['accuracy','recall'])
     return model
 
 def trainModel(model,train_ds,val_ds,n_epochs=20):
@@ -156,3 +159,40 @@ def createDataSet_2(image_size,batch_size,sampleEnv=True):
     batch_size=batch_size)
 
     return train_ds, val_ds , test_ds
+
+
+def createDataSet_ForestNet(image_size, label_mode, batch_size, sampleEnv = True,):
+    data_path= "../raw_data/ForestNetDataset/"
+
+    # USE LABEL MODE categorical for multiple categories
+    train_path = data_path+"train"
+    valid_path = data_path+"valid"
+    test_path = data_path+"test"
+
+    train_ds= image_dataset_from_directory(train_path,
+                                        labels="inferred",
+                                        label_mode=label_mode,
+                                        image_size=image_size,
+                                        batch_size=batch_size,
+                                        seed=123)
+
+
+    # Create the validation dataset with the specified validation split
+    val_ds = image_dataset_from_directory(
+    valid_path,
+    labels='inferred',
+    label_mode=label_mode,  # or 'categorical' depending on your problem
+    image_size=image_size,
+    batch_size=batch_size,
+    seed=123  # Set the same random seed for consistency
+    )
+    test_ds = image_dataset_from_directory(
+    test_path,
+    labels = "inferred",
+    label_mode = label_mode,
+    seed=123,
+    image_size=image_size,
+    batch_size=batch_size)
+
+    return train_ds, val_ds , test_ds
+
