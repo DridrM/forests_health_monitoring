@@ -118,6 +118,7 @@ def classifyData(csv_path,processed_file):
             print(img_name+"not found")
         print(processed_path)
         print(my_target_file)
+        print("NEW ROW")
 #        shutil.copy(processed_path, my_target_file)
 
 
