@@ -17,3 +17,13 @@ mkdir valid/Grass
 mkdir valid/Other
 mkdir valid/Plantation
 mkdir valid/Agriculture
+
+
+path="../raw_data/ForestNetDataset/"
+path_to_images_full = path+"examples"
+mask.pullFile(path_to_images_full)
+process_file="processed.jpg"
+mask.bulkProcess(path_to_images_full,0.2, process_file)
+mask.classifyData(path,process_file,"test")
+mask.classifyData(path,process_file,"valid")
+mask.classifyData(path,process_file,"train")
