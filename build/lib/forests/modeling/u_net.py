@@ -49,3 +49,36 @@ def encoder_mini_block_v1(inputs,
     skip_connection = conv
     
     return next_layer, skip_connection
+
+
+def decoder_mini_block_v1(prev_layer_input, 
+                     skip_layer_input, 
+                     n_filters = 32):
+    """Create a convolution decoding mini block to chain in order to create U net models"""
+    
+    # Create the up-conv layer
+    up = Conv2DTranspose(n_filters, 
+                         kernel_size = (3, 3), 
+                         strides = (2, 2), 
+                         padding = 'same')(prev_layer_input)
+    
+    # Merge the up-conv layer output with the skip layer input from the corresponding encoding mini-block
+    merge = tf.concat([up, skip_layer_input], axis = 3)
+    
+    # First conv layer of the mini block
+    conv = Conv2D(n_filters, 
+                  kernel_size = (3, 3), 
+                  activation = 'relu', 
+                  padding = 'same', 
+                  kernel_initializer = 'HeNormal')(merge)
+    
+    # Second conv layer of the mini block
+    conv = Conv2D(n_filters, 
+                  kernel_size = (3, 3), 
+                  activation = 'relu', 
+                  padding = 'same', 
+                  kernel_initializer = 'HeNormal')(conv)
+    
+    return conv
+
+

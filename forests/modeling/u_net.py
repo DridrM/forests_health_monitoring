@@ -51,7 +51,7 @@ def encoder_mini_block_v1(inputs,
     return next_layer, skip_connection
 
 
-def decoder_mini_block(prev_layer_input, 
+def decoder_mini_block_v1(prev_layer_input, 
                      skip_layer_input, 
                      n_filters = 32):
     """Create a convolution decoding mini block to chain in order to create U net models"""
