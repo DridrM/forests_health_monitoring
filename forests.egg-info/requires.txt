@@ -18,6 +18,7 @@ db-dtypes
 pyarrow
 opencv-python
 shapely
+pydot
 
 [:sys_platform != "darwin"]
 tensorflow==2.10.0
