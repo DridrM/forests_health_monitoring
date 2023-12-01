@@ -2,3 +2,4 @@ raw_data
 notebooks
 models
 .DS_Store
+__pycache__

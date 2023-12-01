@@ -56,8 +56,8 @@ def createModel(image_shape,kernel_size,num_classes):
     # use num_classes to specify the number of categories
     model = Sequential()
     model.add(Rescaling(1./255, input_shape = image_shape))
-    model.add(Conv2D(filters = 32, kernel_size = (3,3), input_shape = image_shape, activation="relu", padding = "same"))
-    model.add(Conv2D(filters = 32, kernel_size = (3,3), activation="relu", padding = "same"))
+    model.add(Conv2D(filters = 32, kernel_size = kernel_size, input_shape = image_shape, activation="relu", padding = "same"))
+    model.add(Conv2D(filters = 32, kernel_size = kernel_size, activation="relu", padding = "same"))
     model.add(Flatten())
 
     model.add(Dense(64, activation="relu"))
@@ -68,7 +68,7 @@ def createModel(image_shape,kernel_size,num_classes):
 
     return model
 
-def compileModel(model,learning_rate = 0.001, loss_type):
+def compileModel(model, loss_type,learning_rate = 0.001):
     #  loss_type= ='binary_crossentropy' for 2 categories
     # loss_type= = 'categorical_crossentropy' for multiple
     adam = optimizers.Adam(learning_rate)
@@ -161,8 +161,7 @@ def createDataSet_2(image_size,batch_size,sampleEnv=True):
     return train_ds, val_ds , test_ds
 
 
-def createDataSet_ForestNet(image_size,batch_size,sampleEnv=True,label_mode):
-    data_path= "../raw_data/ForestNetDataset/"
+def createDataSet_ForestNet(data_path,image_size,batch_size,label_mode,sampleEnv=True):
 
     # USE LABEL MODE categorical for multiple categories
     train_path = data_path+"train"
@@ -195,4 +194,3 @@ def createDataSet_ForestNet(image_size,batch_size,sampleEnv=True,label_mode):
     batch_size=batch_size)
 
     return train_ds, val_ds , test_ds
-
