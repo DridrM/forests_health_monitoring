@@ -54,6 +54,10 @@ def createDataSet(image_size,batch_size,sampleEnv=True):
 
 def createModel(image_shape,kernel_size,num_classes):
     # use num_classes to specify the number of categories
+    if num_classes >2:
+        final_activation="softmax"
+    else:
+        final_activation="sigmoid"
     model = Sequential()
     model.add(Rescaling(1./255, input_shape = image_shape))
     model.add(Conv2D(filters = 32, kernel_size = kernel_size, input_shape = image_shape, activation="relu", padding = "same"))
@@ -64,28 +68,50 @@ def createModel(image_shape,kernel_size,num_classes):
 
     model.add(Dropout(0.5))
 
-    model.add(Dense(num_classes, activation="sigmoid"))
+    model.add(Dense(num_classes, activation=final_activation))
 
     return model
 
-  
+def createModelVincent(image_shape,kernel_size,num_classes):
+    # use num_classes to specify the number of categories
+    if num_classes >2:
+        final_activation="softmax"
+    else:
+        final_activation="sigmoid"
+    model = Sequential()
+    model.add(Rescaling(1./255, input_shape = image_shape))
+    model.add(Conv2D(filters = 64, kernel_size = kernel_size, input_shape = image_shape, activation="relu", padding = "same"))
+    model.add(MaxPooling2D(pool_size=kernel_size))
+    model.add(Conv2D(filters = 32, kernel_size = kernel_size, activation="relu", padding = "same"))
+    model.add(MaxPooling2D(pool_size=kernel_size))
+    model.add(Flatten())
+
+    model.add(Dense(64, activation="relu"))
+
+    model.add(Dropout(0.5))
+
+    model.add(Dense(num_classes, activation=final_activation))
+
+    return model
+
 def compileModel(model, loss_type,learning_rate = 0.001):
     #  loss_type= ='binary_crossentropy' for 2 categories
     # loss_type= = 'categorical_crossentropy' for multiple
     adam = optimizers.Adam(learning_rate)
     model.compile(loss=loss_type,
               optimizer= adam,
-              metrics=['accuracy','recall'])
+              metrics=['accuracy','Recall'])
     return model
 
 def trainModel(model,train_ds,val_ds,n_epochs=20):
-    EarlyStopper = EarlyStopping(monitor='val_loss', patience=2, verbose=0, restore_best_weights=True)
+    print("New model")
+  #  EarlyStopper = EarlyStopping(monitor='val_loss', patience=5, verbose=1, restore_best_weights=True)
 
     history = model.fit(
             train_ds,
             epochs=n_epochs,
-            validation_data=val_ds,
-            callbacks = [EarlyStopper])
+            validation_data=val_ds)
+  #          callbacks = [EarlyStopper])
 
     return model,history
 
@@ -161,8 +187,8 @@ def createDataSet_2(image_size,batch_size,sampleEnv=True):
 
     return train_ds, val_ds , test_ds
 
-  
-def createDataSet_ForestNet(data_path,image_size,batch_size,label_mode,sampleEnv=True):
+
+def createDataSet_ForestNet(data_path,image_size,batch_size,label_mode,test_sample_size,sampleEnv=True):
 
     # USE LABEL MODE categorical for multiple categories
     train_path = data_path+"train"
@@ -192,6 +218,6 @@ def createDataSet_ForestNet(data_path,image_size,batch_size,label_mode,sampleEnv
     label_mode = label_mode,
     seed=123,
     image_size=image_size,
-    batch_size=batch_size)
+    batch_size=test_sample_size)
 
     return train_ds, val_ds , test_ds
