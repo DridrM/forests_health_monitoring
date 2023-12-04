@@ -160,7 +160,7 @@ def process_mask_target(input_pickle_path: str,
     polygons = open_pickle_polygons(input_pickle_path)
     
     # Apply mask to the black image
-    target = apply_mask_to_image(black_image, polygons, alpha = 1)
+    target = apply_mask_to_image(black_image, polygons, alpha = 1, line_type = cv2.LINE_8)
     
     # Save the target mask
     np.save(output_mask_target_path, target)
