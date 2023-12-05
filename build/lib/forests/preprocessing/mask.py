@@ -160,10 +160,10 @@ def process_mask_target(input_pickle_path: str,
     polygons = open_pickle_polygons(input_pickle_path)
     
     # Apply mask to the black image
-    target = apply_mask_to_image(black_image, polygons, alpha = 1)
+    target = apply_mask_to_image(black_image, polygons, alpha = 1, line_type = cv2.LINE_8)
     
     # Save the target mask
-    np.save(output_mask_target_path, target)
+    cv2.imwrite(output_mask_target_path, target)
 
 
 def classifyData_Pickle(csv_path, process_type):
@@ -189,13 +189,13 @@ def classifyData_Pickle(csv_path, process_type):
         processed_path=row_path+"/"+png_files[0]
         image_str=row['example_path']
         target_dir=image_str.replace('examples/',"")
-        img_name=target_dir+".jpg"
+        img_name=target_dir+".png"
         
         input_pickle = row_path+"/"+pickle_name
-        pickle_name_target=target_dir+"_mask"
+        pickle_name_target=target_dir+"_mask.png"
         
-        my_target_file=path_to_train+"/"+img_name
-        my_target_pickle=path_to_train+"/"+pickle_name_target
+        my_target_file=path_to_train + "/features/features" + img_name
+        my_target_pickle=path_to_train + "/targets/targets" + pickle_name_target
         
         # print("INPUT IMAGE",processed_path)
         # print("INPUT PICKLE:",input_pickle)
@@ -207,4 +207,4 @@ def classifyData_Pickle(csv_path, process_type):
              process_mask_target(input_pickle, my_target_pickle)
              
         except Exception as e:
-             print(processed_path, " not processed:",e)
+             print(processed_path, " not processed:", e)
