@@ -293,3 +293,29 @@ def showConfusion_Matrix(test_ds,model):
     confusion_matrix_f = confusion_matrix(test_classes,predicted_classes)
     disp=ConfusionMatrixDisplay(confusion_matrix_f,display_labels=test_ds.class_names)
     disp.plot()
+
+
+#def cropNumpyImage(im_np,size):
+#
+
+def createModelResNet50(image_shape):
+    base_model = tf.keras.applications.resnet50.ResNet50(
+        include_top=False,
+        weights='imagenet',
+        input_tensor=None,
+        input_shape=image_shape,
+        pooling=None,
+        classes=1000)
+    base_model.trainable = False
+    inputs = tf.keras.Input(shape=image_shape)
+        # We make sure that the base_model is running in inference mode here,
+        # by passing `training=False`. This is important for fine-tuning, as you will
+        # learn in a few paragraphs.
+    x = base_model(inputs, training=False)
+        # Convert features of shape `base_model.output_shape[1:]` to vectors
+    x = tf.keras.layers.GlobalAveragePooling2D()(x)
+        # A Dense classifier with a single unit (binary classification)
+    outputs = tf.keras.layers.Dense(4)(x)
+    model = tf.keras.Model(inputs, outputs)
+
+    return model

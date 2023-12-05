@@ -13,6 +13,8 @@ import pandas as pd
 import shutil
 from sklearn.metrics import confusion_matrix
 import seaborn as sns
+from PIL import Image
+
 
 def open_pickle_polygons(pickle_path: str, read_option = '+rb') -> list:
     """Open a shapely object saved into a pickle file
@@ -260,3 +262,42 @@ def process_mask_targetAsNumpy(input_pickle_path: str,
 
     # Save the target mask
     return target
+
+
+def cropImage(img_path,crop_fact):
+    all_files = os.listdir(img_path)
+    my_file = [file for file in all_files if file.endswith('.png')]
+    img_name=my_file[0]
+    # Open the image file
+    image = Image.open(img_path+"/"+img_name)
+
+    # Get the dimensions of the image
+    width, height = image.size
+
+    # Define the size of the center portion you want to extract (e.g., 100x100 pixels)
+    center_width, center_height = round(width/2), round(height/2)
+
+    # Calculate the coordinates for cropping the center portion
+    left = (width - center_width) // crop_fact
+    top = (height - center_height) // crop_fact
+    right = (width + center_width) // crop_fact
+    bottom = (height + center_height) // crop_fact
+
+    # Crop the center portion of the image
+    center_image = image.crop((left, top, right, bottom))
+
+    # Save or display the cropped center portion
+    crop_name=f"{img_path}/image_cropped_{crop_fact}.jpg"
+    center_image.save(crop_name)
+    #center_image.show()
+
+def bulkProcessCrop(path_to_images,crop_fact):
+    myDirList=os.listdir(path_to_images)
+ #   print(myDirList)
+    #myDirList = [file for file in os.listdir(path_to_images) if not file.startswith('.')]
+    for data_dir_l in myDirList:
+        data_dir=path_to_images+"/"+data_dir_l
+        try:
+            cropImage(data_dir,crop_fact)
+        except Exception as e:
+            print(data_dir, " not processed:",e)
