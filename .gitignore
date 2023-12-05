@@ -3,3 +3,4 @@ notebooks
 models
 .DS_Store
 __pycache__/
+models
