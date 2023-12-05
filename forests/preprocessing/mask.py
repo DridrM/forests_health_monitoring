@@ -169,17 +169,37 @@ def pullFile(file_path):
         shutil.copy(my_im_f_input, my_target)
 
 
-def classifyData_Pickle(csv_path,processed_file, process_type):
-    pickle_name = "forest_loss_region.pkl"
+def process_mask_target(input_pickle_path: str, 
+                        output_mask_target_path: str, 
+                        mask_size = (332, 332, 1)) -> None:
+    """Build a mask from the shape at input_pickle_path
+       Write the mask in the output_mask_target_path as numpy array"""
+       
+    # Create a 332 * 332 black image
+    black_image = np.zeros(shape = mask_size)
+       
+    # Extract the polygons from the pickle
+    polygons = open_pickle_polygons(input_pickle_path)
+    
+    # Apply mask to the black image
+    target = apply_mask_to_image(black_image, polygons, alpha = 1, line_type = cv2.LINE_8)
+    
+    # Save the target mask
+    cv2.imwrite(output_mask_target_path, target)
 
+
+def classifyData_Pickle(csv_path, process_type):
+    
+    pickle_name = "forest_loss_region.pkl"
+    
     if process_type=="train":
         train = pd.read_csv(csv_path+'/train.csv')
         path_to_train="../raw_data/ForestNetDataset/train"
-
+    
     elif process_type=="valid":
         train = pd.read_csv(csv_path+'/val.csv')
         path_to_train="../raw_data/ForestNetDataset/valid"
-
+    
     elif process_type=="test":
         train = pd.read_csv(csv_path+'/test.csv')
         path_to_train="../raw_data/ForestNetDataset/test"
@@ -191,14 +211,14 @@ def classifyData_Pickle(csv_path,processed_file, process_type):
         processed_path=row_path+"/"+png_files[0]
         image_str=row['example_path']
         target_dir=image_str.replace('examples/',"")
-        img_name=target_dir+".jpg"
-
+        img_name=target_dir+".png"
+        
         input_pickle = row_path+"/"+pickle_name
-        pickle_name_target=target_dir+"_mask"
-
-        my_target_file=path_to_train+"/"+img_name
-        my_target_pickle=path_to_train+"/"+pickle_name_target
-
+        pickle_name_target=target_dir+"_mask.png"
+        
+        my_target_file=path_to_train + "/features/features" + img_name
+        my_target_pickle=path_to_train + "/targets/targets" + pickle_name_target
+        
         # print("INPUT IMAGE",processed_path)
         # print("INPUT PICKLE:",input_pickle)
         # print("TARGET IMAGE",my_target_file)
@@ -207,9 +227,10 @@ def classifyData_Pickle(csv_path,processed_file, process_type):
              shutil.copy(processed_path, my_target_file)
             #  shutil.copy(input_pickle, my_target_pickle)
              process_mask_target(input_pickle, my_target_pickle)
-
+             
         except Exception as e:
-             print(processed_path, " not processed:",e)
+             print(processed_path, " not processed:", e)
+
 
 def pltConfusionMatrix(model,test_ds):
 
@@ -301,3 +322,4 @@ def bulkProcessCrop(path_to_images,crop_fact):
             cropImage(data_dir,crop_fact)
         except Exception as e:
             print(data_dir, " not processed:",e)
+
