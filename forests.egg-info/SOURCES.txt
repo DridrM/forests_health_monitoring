@@ -15,7 +15,9 @@ forests/get_image/get_image.py
 forests/modeling/__init__.py
 forests/modeling/data.py
 forests/modeling/modeling.py
-forests/modeling/u_net.py
+forests/modeling/u_net_blocks.py
+forests/modeling/u_net_compile_fit_evaluate.py
+forests/modeling/u_net_pipeline.py
 forests/preprocessing/__init__.py
 forests/preprocessing/mask.py
 forests/preprocessing/split.py

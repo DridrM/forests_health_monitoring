@@ -5,6 +5,7 @@ from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense, Flatten, Dropout, BatchNormalization, Conv2D, MaxPooling2D, Rescaling
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 from tensorflow.keras.callbacks import ModelCheckpoint, EarlyStopping
+from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
 from PIL import ImageFile
 import numpy as np
 import matplotlib.pyplot as plt
@@ -54,37 +55,64 @@ def createDataSet(image_size,batch_size,sampleEnv=True):
 
 def createModel(image_shape,kernel_size,num_classes):
     # use num_classes to specify the number of categories
+    if num_classes >2:
+        final_activation="softmax"
+    else:
+        final_activation="sigmoid"
     model = Sequential()
     model.add(Rescaling(1./255, input_shape = image_shape))
-    model.add(Conv2D(filters = 32, kernel_size = (3,3), input_shape = image_shape, activation="relu", padding = "same"))
-    model.add(Conv2D(filters = 32, kernel_size = (3,3), activation="relu", padding = "same"))
+    model.add(Conv2D(filters = 32, kernel_size = kernel_size, input_shape = image_shape, activation="relu", padding = "same"))
+    model.add(Conv2D(filters = 32, kernel_size = kernel_size, activation="relu", padding = "same"))
     model.add(Flatten())
 
     model.add(Dense(64, activation="relu"))
 
     model.add(Dropout(0.5))
 
-    model.add(Dense(num_classes, activation="sigmoid"))
+    model.add(Dense(num_classes, activation=final_activation))
 
     return model
 
-def compileModel(model, loss_type, learning_rate = 0.001):
+def createModelwithPooling(image_shape,kernel_size,num_classes):
+    # use num_classes to specify the number of categories
+    if num_classes >2:
+        final_activation="softmax"
+    else:
+        final_activation="sigmoid"
+    model = Sequential()
+    model.add(Rescaling(1./255, input_shape = image_shape))
+    model.add(Conv2D(filters = 64, kernel_size = kernel_size, input_shape = image_shape, activation="relu", padding = "same"))
+    model.add(MaxPooling2D(pool_size=kernel_size))
+    model.add(Conv2D(filters = 32, kernel_size = kernel_size, activation="relu", padding = "same"))
+    model.add(MaxPooling2D(pool_size=kernel_size))
+    model.add(Flatten())
+
+    model.add(Dense(64, activation="relu"))
+
+    model.add(Dropout(0.5))
+
+    model.add(Dense(num_classes, activation=final_activation))
+
+    return model
+
+def compileModel(model, loss_type,learning_rate = 0.001):
     #  loss_type= ='binary_crossentropy' for 2 categories
     # loss_type= = 'categorical_crossentropy' for multiple
     adam = optimizers.Adam(learning_rate)
     model.compile(loss=loss_type,
               optimizer= adam,
-              metrics=['accuracy','recall'])
+              metrics=['accuracy','Recall'])
     return model
 
 def trainModel(model,train_ds,val_ds,n_epochs=20):
-    EarlyStopper = EarlyStopping(monitor='val_loss', patience=2, verbose=0, restore_best_weights=True)
+    print("New model")
+  #  EarlyStopper = EarlyStopping(monitor='val_loss', patience=5, verbose=1, restore_best_weights=True)
 
     history = model.fit(
             train_ds,
             epochs=n_epochs,
-            validation_data=val_ds,
-            callbacks = [EarlyStopper])
+            validation_data=val_ds)
+  #          callbacks = [EarlyStopper])
 
     return model,history
 
@@ -161,8 +189,7 @@ def createDataSet_2(image_size,batch_size,sampleEnv=True):
     return train_ds, val_ds , test_ds
 
 
-def createDataSet_ForestNet(image_size, label_mode, batch_size, sampleEnv = True,):
-    data_path= "../raw_data/ForestNetDataset/"
+def createDataSet_ForestNet(data_path,image_size,batch_size,label_mode,test_sample_size,sampleEnv=True):
 
     # USE LABEL MODE categorical for multiple categories
     train_path = data_path+"train"
@@ -192,7 +219,103 @@ def createDataSet_ForestNet(image_size, label_mode, batch_size, sampleEnv = True
     label_mode = label_mode,
     seed=123,
     image_size=image_size,
-    batch_size=batch_size)
+    batch_size=test_sample_size)
 
     return train_ds, val_ds , test_ds
 
+
+def randomCrop_ForestNet(data_path,image_size,batch_size):
+
+    # Define the parameters for your image dataset
+ #   image_size = (224, 224)  # Specify the desired image size
+ #   data_dir = 'path_to_your_dataset_directory'
+    # USE LABEL MODE categorical for multiple categories
+    train_path = data_path+"train"
+    valid_path = data_path+"valid"
+    test_path = data_path+"test"
+    # Define data augmentation including random cropping
+    data_augmentation = tf.keras.Sequential([
+        tf.keras.layers.experimental.preprocessing.RandomCrop(height=image_size[0], width=image_size[1])
+    ])
+
+    # Create the image dataset with random cropping
+    train_dataset = tf.keras.utils.image_dataset_from_directory(
+        train_path,
+        subset="training",
+        labels="inferred",
+        seed=123,
+        image_size=image_size,
+        batch_size=batch_size,
+        label_mode="categorical",  # Or "binary" for binary classification
+        shuffle=True,
+        data_augmentation=data_augmentation  # Use data augmentation
+    )
+
+    # You can also create a validation dataset in a similar way
+    val_dataset = tf.keras.utils.image_dataset_from_directory(
+        valid_path,
+        subset="validation",
+        labels="inferred",
+        seed=123,
+        image_size=image_size,
+        batch_size=batch_size,
+        label_mode="categorical",
+        shuffle=False  # No need to shuffle the validation dataset
+    )
+
+def createBaseModel(image_size):
+    base_model = tf.keras.applications.Xception(
+         weights='imagenet',  # Load weights pre-trained on ImageNet.
+        input_shape=image_size,
+        include_top=False)  # Do not include the ImageNet classifier at the top.
+    base_model.trainable = False
+    inputs = tf.keras.Input(shape=image_size)
+        # We make sure that the base_model is running in inference mode here,
+        # by passing `training=False`. This is important for fine-tuning, as you will
+        # learn in a few paragraphs.
+    x = base_model(inputs, training=False)
+        # Convert features of shape `base_model.output_shape[1:]` to vectors
+    x = tf.keras.layers.GlobalAveragePooling2D()(x)
+        # A Dense classifier with a single unit (binary classification)
+    outputs = tf.keras.layers.Dense(4)(x)
+    model = tf.keras.Model(inputs, outputs)
+
+    return model
+
+
+def showConfusion_Matrix(test_ds,model):
+    y_pred_prob = model.predict(test_ds)
+    labels = test_ds.map(lambda x, y: y)
+    y_test_n = np.array(list(labels))
+    y_test=y_test_n[0,:,:]
+    test_classes=np.argmax(y_test, axis=1)
+    predicted_classes = np.argmax(y_pred_prob, axis=1)
+    confusion_matrix_f = confusion_matrix(test_classes,predicted_classes)
+    disp=ConfusionMatrixDisplay(confusion_matrix_f,display_labels=test_ds.class_names)
+    disp.plot()
+
+
+#def cropNumpyImage(im_np,size):
+#
+
+def createModelResNet50(image_shape):
+    base_model = tf.keras.applications.resnet50.ResNet50(
+        include_top=False,
+        weights='imagenet',
+        input_tensor=None,
+        input_shape=image_shape,
+        pooling=None,
+        classes=1000)
+    base_model.trainable = False
+    inputs = tf.keras.Input(shape=image_shape)
+        # We make sure that the base_model is running in inference mode here,
+        # by passing `training=False`. This is important for fine-tuning, as you will
+        # learn in a few paragraphs.
+    x = base_model(inputs, training=False)
+        # Convert features of shape `base_model.output_shape[1:]` to vectors
+    x = tf.keras.layers.GlobalAveragePooling2D()(x)
+        # A Dense classifier with a single unit (binary classification)
+    outputs = tf.keras.layers.Dense(4)(x)
+    model = tf.keras.Model(inputs, outputs)
+
+    return model
