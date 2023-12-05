@@ -17,6 +17,7 @@ forests/modeling/data.py
 forests/modeling/modeling.py
 forests/modeling/u_net.py
 forests/preprocessing/__init__.py
+forests/preprocessing/data_augmentation.py
 forests/preprocessing/mask.py
 forests/preprocessing/split.py
 tests/__init__.py
