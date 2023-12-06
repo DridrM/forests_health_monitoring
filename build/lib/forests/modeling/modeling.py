@@ -117,21 +117,34 @@ def trainModel(model,train_ds,val_ds,n_epochs=20):
     return model,history
 
 
-def plot_history(history,batch_size,image_size,model_name,saveFig=False):
+def plot_history(history, 
+                 batch_size, 
+                 image_size, 
+                 model_name, 
+                 saveFig=False, 
+                 loss_key = "loss", 
+                 val_loss_key = "val_loss", 
+                 accuracy_key = "accuracy", 
+                 val_accuracy_key = 'val_accuracy', 
+                 recall_key = 'recall', 
+                 val_recall_key = 'val_recall'):
+    
+    
+    
     fig, ax = plt.subplots(1, 3, figsize=(15,5))
     title = f"BATCH SIZE={batch_size}, IMAGE SIZE={image_size}"
     fig.suptitle(title, fontsize=16)
     ax[0].set_title('loss')
-    ax[0].plot(history.epoch, history.history["loss"], label="Train loss")
-    ax[0].plot(history.epoch, history.history["val_loss"], label="Validation loss")
+    ax[0].plot(history.epoch, history.history[loss_key], label="Train loss")
+    ax[0].plot(history.epoch, history.history[val_loss_key], label="Validation loss")
 
     ax[1].set_title('accuracy')
-    ax[1].plot(history.epoch, history.history["accuracy"], label="Train acc")
-    ax[1].plot(history.epoch, history.history["val_accuracy"], label="Validation acc")
+    ax[1].plot(history.epoch, history.history[accuracy_key], label="Train acc")
+    ax[1].plot(history.epoch, history.history[val_accuracy_key], label="Validation acc")
 
     ax[2].set_title('recall')
-    ax[2].plot(history.epoch, history.history["recall"], label="Train Recall")
-    ax[2].plot(history.epoch, history.history["val_recall"], label="Validation Recall")
+    ax[2].plot(history.epoch, history.history[recall_key], label="Train Recall")
+    ax[2].plot(history.epoch, history.history[val_recall_key], label="Validation Recall")
     ax[0].legend()
     ax[1].legend()
     if saveFig:
