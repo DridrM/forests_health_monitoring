@@ -26,14 +26,14 @@ def scale_image_and_target(image, target):
     image = tf.cast(image, tf.float16) / 255.0
     
     # Min max scale the mask target
-    target = (tf.cast(target, tf.float16) - np.min(target)) / (np.max(target) - np.min(target))
+    target = tf.cast(target, tf.float16) / 255.0
     
     return image, target
 
 
 # Define the pipeline function
 def make_generator_pipeline(features_path: str, 
-                        targets_papth: str, 
+                        targets_path: str, 
                         batch_size: int, 
                         target_size: tuple) -> None:
     """Construct an image and target generator for u-net models that feed the .fit method"""
@@ -47,7 +47,7 @@ def make_generator_pipeline(features_path: str,
                                                           seed = 42)
     
     # Set the target mask generator with the tf method flow from directory
-    mask_generator = ImageDataGenerator().flow_from_directory(targets_papth, 
+    mask_generator = ImageDataGenerator().flow_from_directory(targets_path, 
                                                           class_mode = None, 
                                                           color_mode = 'grayscale', 
                                                           target_size = target_size, 

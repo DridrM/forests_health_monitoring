@@ -31,6 +31,7 @@ BATCH_SIZE = 32
 LEARNING_RATE = 0.0001
 PATIENCE = 5
 METRICS = ['accuracy', tf.keras.metrics.Recall()]
+METRIC_TO_MONITOR = 'loss'
 
 # Define paths
 DATASET_PATH = "../raw_data/ForestNetDataset/"
@@ -49,12 +50,12 @@ def root_mean_squared_error(y_true, y_pred):
         return K.sqrt(K.mean(K.square(y_pred - y_true)))
 
 # Custom dice loss
-def dice_coef(y_true, y_pred, smooth = 100):        
+def dice_coef(y_true, y_pred, smooth = .1):        
     y_true_f = K.flatten(y_true)
     y_pred_f = K.flatten(y_pred)
     intersection = K.sum(y_true_f * y_pred_f)
     dice = (2. * intersection + smooth) / (K.sum(y_true_f) + K.sum(y_pred_f) + smooth)
-    return - dice
+    return 1 - dice
 
 
 ############################
@@ -72,6 +73,7 @@ def compile_and_fit_u_net(u_net_model,
                           batch_size = BATCH_SIZE, 
                           target_size = TARGET_SIZE, 
                           learning_rate = LEARNING_RATE, 
+                          metric_to_monitor = METRIC_TO_MONITOR, 
                           ):
     """Compile and fit the u-net model :
     - u_net_model : Tensorflow u-net model
@@ -83,6 +85,7 @@ def compile_and_fit_u_net(u_net_model,
     - learning_rate : Float
     - loss_function : Function object
     - metrics : List of strings
+    - metric_to_monitor : String
     Return model history
     """
     
@@ -113,7 +116,7 @@ def compile_and_fit_u_net(u_net_model,
     valid_gen = make_generator_pipeline(*valid_paths, batch_size, target_size)
     
     # Define the early stopping
-    es = EarlyStopping(patience = patience, restore_best_weights = True)
+    es = EarlyStopping(monitor = metric_to_monitor, patience = patience, restore_best_weights = True)
     
     # Fit the model !
     history = u_net_model.fit(train_gen, 
@@ -177,13 +180,14 @@ def predict_and_plot_u_net(test_gen,
     try:
         # Generate a random number within the batch size
         rd_index = np.random.randint(0, batch_size)
-
+        
         # Pick an image and a mask to predict
-        image_to_predict = test_gen.__next__()[0][rd_index]
-        mask_to_predict = test_gen.__next__()[1][rd_index]
+        img_batch, mask_batch = test_gen.__next__()
+        image_to_predict = img_batch[rd_index]
+        mask_to_predict = mask_batch[rd_index]
 
         # Predict
-        mask_predicted = u_net_fitted.predict(test_gen.__next__()[0])[rd_index]
+        mask_predicted = u_net_fitted.predict(img_batch)[rd_index]
 
         # Plot prediction alongside image and mask to predict
         plt.figure(figsize = figsize)
